@@ -2,7 +2,7 @@
 // @name         아카콘 검색기
 // @description  아카라이브 아카콘 이름 검색 기능
 // @namespace    http://tampermonkey.net/
-// @version      1.0.10
+// @version      1.1.0
 // @match        https://arca.live/b/*
 // @grant        GM_addStyle
 // @author       Bernadetta
