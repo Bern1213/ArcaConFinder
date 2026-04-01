@@ -2,7 +2,7 @@
 // @name         아카콘 검색기
 // @description  아카라이브 아카콘 이름 검색 기능
 // @namespace    http://tampermonkey.net/
-// @version      1.0.7
+// @version      1.0.8
 // @match        https://arca.live/b/*
 // @grant        GM_addStyle
 // @author       Bernadetta
@@ -104,10 +104,6 @@
                     z-index: 100;
                     pointer-events: none;
                 }
-                /* 스크롤 시 검색창에 제목이 가려지지 않도록 강제 여백 확보 */
-                .package-wrap, .package-title {
-                    scroll-margin-top: 50px; 
-                }
             `);
         }
 
@@ -166,11 +162,15 @@
                 matches.forEach((pkg, idx) => {
                     if (idx === currentIndex) {
                         const titleEl = pkg.querySelector(Config.selectors.packageTitle);
-                        if (titleEl) {
-                            titleEl.scrollIntoView({ behavior: 'instant', block: 'start' });
-                        } else {
-                            pkg.scrollIntoView({ behavior: 'instant', block: 'start' });
-                        }
+                        const targetEl = titleEl ? titleEl : pkg;
+
+                        // 🔥 핵심 수정: 전체 화면 스크롤 방지를 위해 아카콘 패널(contentPanel)의 scrollTop만 독립적으로 조작
+                        const containerRect = contentPanel.getBoundingClientRect();
+                        const targetRect = targetEl.getBoundingClientRect();
+                        const searchHeight = wrapper.offsetHeight;
+
+                        // 현재 패널의 스크롤 위치 + (목표물과 패널 상단 간의 거리) - (검색창 높이 + 여백 5px)
+                        contentPanel.scrollTop += (targetRect.top - containerRect.top) - searchHeight - 5;
                     }
                 });
                 countEl.textContent = `${currentIndex + 1}/${matches.length}`;
