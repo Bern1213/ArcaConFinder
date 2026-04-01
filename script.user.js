@@ -2,7 +2,7 @@
 // @name         아카콘 검색기
 // @description  아카라이브 아카콘 이름 검색 기능
 // @namespace    http://tampermonkey.net/
-// @version      1.0.4
+// @version      1.0.6
 // @match        https://arca.live/b/*
 // @grant        GM_addStyle
 // @author       Bernadetta
@@ -73,6 +73,37 @@
                     background: var(--color-bg-dark, #eee);
                     color: var(--color-text, #333);
                 }
+                .arcacon-help-icon {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 18px;
+                    height: 18px;
+                    border-radius: 50%;
+                    background-color: var(--color-border, #ccc);
+                    color: var(--color-bg, #fff);
+                    font-size: 12px;
+                    font-weight: bold;
+                    cursor: help;
+                    position: relative;
+                    flex-shrink: 0;
+                    margin-left: 6px;
+                }
+                .arcacon-help-icon:hover::after {
+                    content: attr(data-tooltip);
+                    position: absolute;
+                    top: 100%;
+                    right: 0;
+                    margin-top: 8px;
+                    background: rgba(0, 0, 0, 0.75);
+                    color: #fff;
+                    padding: 6px 10px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    white-space: nowrap;
+                    z-index: 100;
+                    pointer-events: none;
+                }
                 .arcacon-match-active {
                     outline: 2px solid #00a8ff;
                     background-color: rgba(0, 168, 255, 0.05);
@@ -92,8 +123,9 @@
                 <input class="arcacon-search-input" type="text" placeholder="아카콘 이름 검색...">
                 <div class="arcacon-search-status">
                     <span class="arcacon-search-count">0/0</span>
-                    <button class="arcacon-search-nav prev" title="이전 (Shift+Enter)">▲</button>
-                    <button class="arcacon-search-nav next" title="다음 (Enter)">▼</button>
+                    <button type="button" class="arcacon-search-nav prev" title="이전 (Shift+Enter)">▲</button>
+                    <button type="button" class="arcacon-search-nav next" title="다음 (Enter)">▼</button>
+                    <div class="arcacon-help-icon" data-tooltip="엔터(Enter)를 누르면 검색된 아카콘으로 이동합니다.">?</div>
                 </div>
             `;
 
@@ -128,25 +160,22 @@
                     return titleEl && titleEl.innerText.toLowerCase().includes(keyword);
                 });
 
-                if (matches.length > 0) {
-                    currentIndex = 0;
-                    focusMatch();
-                } else {
-                    currentIndex = -1;
-                    countEl.textContent = '0/0';
-                }
+                currentIndex = -1;
+                countEl.textContent = `0/${matches.length}`;
             };
 
             const focusMatch = () => {
+                if (currentIndex === -1) return;
+
                 matches.forEach((pkg, idx) => {
                     if (idx === currentIndex) {
                         pkg.classList.add('arcacon-match-active');
 
                         const titleEl = pkg.querySelector(Config.selectors.packageTitle);
                         if (titleEl) {
-                            titleEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            titleEl.scrollIntoView({ behavior: 'instant', block: 'center' });
                         } else {
-                            pkg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            pkg.scrollIntoView({ behavior: 'instant', block: 'center' });
                         }
                     } else {
                         pkg.classList.remove('arcacon-match-active');
@@ -157,13 +186,21 @@
 
             const nextMatch = () => {
                 if (matches.length === 0) return;
-                currentIndex = (currentIndex + 1) % matches.length;
+                if (currentIndex === -1) {
+                    currentIndex = 0;
+                } else {
+                    currentIndex = (currentIndex + 1) % matches.length;
+                }
                 focusMatch();
             };
 
             const prevMatch = () => {
                 if (matches.length === 0) return;
-                currentIndex = (currentIndex - 1 + matches.length) % matches.length;
+                if (currentIndex === -1) {
+                    currentIndex = matches.length - 1;
+                } else {
+                    currentIndex = (currentIndex - 1 + matches.length) % matches.length;
+                }
                 focusMatch();
             };
 
