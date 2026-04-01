@@ -2,7 +2,7 @@
 // @name         아카콘 검색기
 // @description  아카라이브 아카콘 이름 검색 기능
 // @namespace    http://tampermonkey.net/
-// @version      1.0.9
+// @version      1.0.10
 // @match        https://arca.live/b/*
 // @grant        GM_addStyle
 // @author       Bernadetta
@@ -140,6 +140,9 @@
                 const keyword = input.value.trim().toLowerCase();
                 const packages = Array.from(contentPanel.querySelectorAll(Config.selectors.packageWrap));
 
+                // 이전 버전의 잔재(파란색)가 남아있을 수 있으니 만약을 위해 스타일 초기화
+                packages.forEach(pkg => pkg.classList.remove('arcacon-match-active'));
+
                 if (!keyword) {
                     matches = [];
                     currentIndex = -1;
@@ -162,6 +165,7 @@
                 const targetPkg = matches[currentIndex];
                 const containerRect = contentPanel.getBoundingClientRect();
 
+                // 파란색 칠하는 로직 삭제. 오직 목표 좌표 계산 후 스크롤만 진행
                 const targetRect = targetPkg.getBoundingClientRect();
                 const searchHeight = wrapper.offsetHeight || 35;
 
