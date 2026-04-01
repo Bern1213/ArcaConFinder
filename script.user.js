@@ -2,7 +2,7 @@
 // @name         아카콘 검색기
 // @description  아카라이브 아카콘 이름 검색 기능
 // @namespace    http://tampermonkey.net/
-// @version      1.0.3
+// @version      1.0.4
 // @match        https://arca.live/b/*
 // @grant        GM_addStyle
 // @author       Bernadetta
@@ -73,7 +73,6 @@
                     background: var(--color-bg-dark, #eee);
                     color: var(--color-text, #333);
                 }
-                /* 강조 표시 효과 */
                 .arcacon-match-active {
                     outline: 2px solid #00a8ff;
                     background-color: rgba(0, 168, 255, 0.05);
@@ -89,14 +88,12 @@
             const wrapper = document.createElement('div');
             wrapper.className = 'arcacon-search-wrapper';
 
-            // 크롬 스타일 UI 렌더링 (화살표 아이콘 변경)
             wrapper.innerHTML = `
                 <input class="arcacon-search-input" type="text" placeholder="아카콘 이름 검색...">
                 <div class="arcacon-search-status">
                     <span class="arcacon-search-count">0/0</span>
                     <button class="arcacon-search-nav prev" title="이전 (Shift+Enter)">▲</button>
                     <button class="arcacon-search-nav next" title="다음 (Enter)">▼</button>
-                    <button class="arcacon-search-nav clear" title="지우기">✕</button>
                 </div>
             `;
 
@@ -109,7 +106,6 @@
             const countEl = wrapper.querySelector('.arcacon-search-count');
             const btnPrev = wrapper.querySelector('.prev');
             const btnNext = wrapper.querySelector('.next');
-            const btnClear = wrapper.querySelector('.clear');
 
             let matches = [];
             let currentIndex = -1;
@@ -146,7 +142,6 @@
                     if (idx === currentIndex) {
                         pkg.classList.add('arcacon-match-active');
 
-                        // 스크롤 타겟을 패키지 전체가 아닌 '제목(.package-title)'으로 변경
                         const titleEl = pkg.querySelector(Config.selectors.packageTitle);
                         if (titleEl) {
                             titleEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -184,12 +179,6 @@
 
             btnNext.addEventListener('click', nextMatch);
             btnPrev.addEventListener('click', prevMatch);
-
-            btnClear.addEventListener('click', () => {
-                input.value = '';
-                updateMatches();
-                input.focus();
-            });
         }
     }
 
