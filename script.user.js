@@ -2,7 +2,7 @@
 // @name         아카콘 검색기
 // @description  아카라이브 아카콘 이름 검색 기능
 // @namespace    http://tampermonkey.net/
-// @version      1.0.6
+// @version      1.0.7
 // @match        https://arca.live/b/*
 // @grant        GM_addStyle
 // @author       Bernadetta
@@ -104,11 +104,9 @@
                     z-index: 100;
                     pointer-events: none;
                 }
-                .arcacon-match-active {
-                    outline: 2px solid #00a8ff;
-                    background-color: rgba(0, 168, 255, 0.05);
-                    border-radius: 4px;
-                    transition: background-color 0.2s;
+                /* 스크롤 시 검색창에 제목이 가려지지 않도록 강제 여백 확보 */
+                .package-wrap, .package-title {
+                    scroll-margin-top: 50px; 
                 }
             `);
         }
@@ -146,8 +144,6 @@
                 const keyword = input.value.trim().toLowerCase();
                 const packages = Array.from(contentPanel.querySelectorAll(Config.selectors.packageWrap));
 
-                packages.forEach(pkg => pkg.classList.remove('arcacon-match-active'));
-
                 if (!keyword) {
                     matches = [];
                     currentIndex = -1;
@@ -169,16 +165,12 @@
 
                 matches.forEach((pkg, idx) => {
                     if (idx === currentIndex) {
-                        pkg.classList.add('arcacon-match-active');
-
                         const titleEl = pkg.querySelector(Config.selectors.packageTitle);
                         if (titleEl) {
-                            titleEl.scrollIntoView({ behavior: 'instant', block: 'center' });
+                            titleEl.scrollIntoView({ behavior: 'instant', block: 'start' });
                         } else {
-                            pkg.scrollIntoView({ behavior: 'instant', block: 'center' });
+                            pkg.scrollIntoView({ behavior: 'instant', block: 'start' });
                         }
-                    } else {
-                        pkg.classList.remove('arcacon-match-active');
                     }
                 });
                 countEl.textContent = `${currentIndex + 1}/${matches.length}`;
