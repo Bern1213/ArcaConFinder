@@ -2,7 +2,7 @@
 // @name         아카콘 검색기
 // @description  아카라이브 아카콘 이름 검색 기능
 // @namespace    http://tampermonkey.net/
-// @version      1.0.2
+// @version      1.0.3
 // @match        https://arca.live/b/*
 // @grant        GM_addStyle
 // @author       Bernadetta
@@ -43,7 +43,7 @@
                     background: var(--color-bg-sub, #f8f9fa);
                     color: var(--color-text, #333);
                     outline: none;
-                    min-width: 0; /* flex 버그 방지 */
+                    min-width: 0; 
                 }
                 .arcacon-search-input:focus {
                     border-color: #00a8ff;
@@ -67,6 +67,7 @@
                     align-items: center;
                     justify-content: center;
                     font-weight: bold;
+                    font-size: 12px;
                 }
                 .arcacon-search-nav:hover {
                     background: var(--color-bg-dark, #eee);
@@ -88,20 +89,18 @@
             const wrapper = document.createElement('div');
             wrapper.className = 'arcacon-search-wrapper';
 
-            // 크롬 스타일 UI 렌더링
+            // 크롬 스타일 UI 렌더링 (화살표 아이콘 변경)
             wrapper.innerHTML = `
                 <input class="arcacon-search-input" type="text" placeholder="아카콘 이름 검색...">
                 <div class="arcacon-search-status">
                     <span class="arcacon-search-count">0/0</span>
-                    <button class="arcacon-search-nav prev" title="이전 (Shift+Enter)">ᐱ</button>
-                    <button class="arcacon-search-nav next" title="다음 (Enter)">ᐯ</button>
+                    <button class="arcacon-search-nav prev" title="이전 (Shift+Enter)">▲</button>
+                    <button class="arcacon-search-nav next" title="다음 (Enter)">▼</button>
                     <button class="arcacon-search-nav clear" title="지우기">✕</button>
                 </div>
             `;
 
             contentPanel.prepend(wrapper);
-
-            // 로직 연결
             this.bindSearchLogic(wrapper, contentPanel);
         }
 
@@ -115,12 +114,10 @@
             let matches = [];
             let currentIndex = -1;
 
-            // 매치되는 아카콘 찾기 및 포커스
             const updateMatches = () => {
                 const keyword = input.value.trim().toLowerCase();
                 const packages = Array.from(contentPanel.querySelectorAll(Config.selectors.packageWrap));
 
-                // 기존 강조 효과 초기화
                 packages.forEach(pkg => pkg.classList.remove('arcacon-match-active'));
 
                 if (!keyword) {
@@ -130,7 +127,6 @@
                     return;
                 }
 
-                // 검색어 포함 여부 확인 (숨기지 않고 리스트만 수집)
                 matches = packages.filter(pkg => {
                     const titleEl = pkg.querySelector(Config.selectors.packageTitle);
                     return titleEl && titleEl.innerText.toLowerCase().includes(keyword);
@@ -145,13 +141,18 @@
                 }
             };
 
-            // 선택된 아카콘 강조 및 스크롤 이동
             const focusMatch = () => {
                 matches.forEach((pkg, idx) => {
                     if (idx === currentIndex) {
                         pkg.classList.add('arcacon-match-active');
-                        // 화면 중앙에 오도록 부드럽게 스크롤
-                        pkg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                        // 스크롤 타겟을 패키지 전체가 아닌 '제목(.package-title)'으로 변경
+                        const titleEl = pkg.querySelector(Config.selectors.packageTitle);
+                        if (titleEl) {
+                            titleEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        } else {
+                            pkg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
                     } else {
                         pkg.classList.remove('arcacon-match-active');
                     }
@@ -159,7 +160,6 @@
                 countEl.textContent = `${currentIndex + 1}/${matches.length}`;
             };
 
-            // 이동 로직
             const nextMatch = () => {
                 if (matches.length === 0) return;
                 currentIndex = (currentIndex + 1) % matches.length;
@@ -172,10 +172,8 @@
                 focusMatch();
             };
 
-            // 이벤트 리스너 등록
             input.addEventListener('input', updateMatches);
 
-            // 엔터키 지원 (Enter: 다음, Shift+Enter: 이전)
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -187,7 +185,6 @@
             btnNext.addEventListener('click', nextMatch);
             btnPrev.addEventListener('click', prevMatch);
 
-            // X 버튼 누르면 초기화
             btnClear.addEventListener('click', () => {
                 input.value = '';
                 updateMatches();
