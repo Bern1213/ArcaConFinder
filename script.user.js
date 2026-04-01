@@ -2,7 +2,7 @@
 // @name         아카콘 검색기
 // @description  아카라이브 아카콘 이름 검색 기능
 // @namespace    http://tampermonkey.net/
-// @version      1.0.8
+// @version      1.0.9
 // @match        https://arca.live/b/*
 // @grant        GM_addStyle
 // @author       Bernadetta
@@ -157,22 +157,20 @@
             };
 
             const focusMatch = () => {
-                if (currentIndex === -1) return;
+                if (currentIndex === -1 || matches.length === 0) return;
 
-                matches.forEach((pkg, idx) => {
-                    if (idx === currentIndex) {
-                        const titleEl = pkg.querySelector(Config.selectors.packageTitle);
-                        const targetEl = titleEl ? titleEl : pkg;
+                const targetPkg = matches[currentIndex];
+                const containerRect = contentPanel.getBoundingClientRect();
 
-                        // 🔥 핵심 수정: 전체 화면 스크롤 방지를 위해 아카콘 패널(contentPanel)의 scrollTop만 독립적으로 조작
-                        const containerRect = contentPanel.getBoundingClientRect();
-                        const targetRect = targetEl.getBoundingClientRect();
-                        const searchHeight = wrapper.offsetHeight;
+                const targetRect = targetPkg.getBoundingClientRect();
+                const searchHeight = wrapper.offsetHeight || 35;
 
-                        // 현재 패널의 스크롤 위치 + (목표물과 패널 상단 간의 거리) - (검색창 높이 + 여백 5px)
-                        contentPanel.scrollTop += (targetRect.top - containerRect.top) - searchHeight - 5;
-                    }
-                });
+                const targetScrollTop = contentPanel.scrollTop + (targetRect.top - containerRect.top) - searchHeight - 2;
+
+                if (Math.abs(contentPanel.scrollTop - targetScrollTop) > 2) {
+                    contentPanel.scrollTop = targetScrollTop;
+                }
+
                 countEl.textContent = `${currentIndex + 1}/${matches.length}`;
             };
 
